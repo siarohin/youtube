@@ -1,7 +1,8 @@
 const maxResult = 12; // set max Results of Elements
 
-let valueUser;
+let valueUser; // user search phrase
 
+const GLOBAL_BLOCK_SETTING = 320; // width of block
 
 function searchResult() {
 
@@ -24,7 +25,7 @@ let arrID = []; // for Elements ID
 
     arrID.push(sliderBlock.items[i].id.videoId); // save Elements ID
 
-    let numberID = i + 1; // set Elements ID
+    let numberID = i + 1; // set ID to block
 
     // create Elements block
 
@@ -55,18 +56,21 @@ let arrID = []; // for Elements ID
 
     });
 
-    getPoints(); // drawing points
+    resetPoints(); // reset points
+    drawPoints(); // drawing points
 
 });
 
+function resetPoints() {
+    document.querySelector('.points').innerHTML = '';
+}
 
-
-function getPoints() {
-  let counterOfBlocks = Math.floor(document.body.querySelector('#wrapper').clientWidth / 320); // number of blocks
+function drawPoints() {
+  let counterOfBlocks = Math.floor(document.body.querySelector('#wrapper').clientWidth / GLOBAL_BLOCK_SETTING); // number of blocks
 
   let numberOfPoints = Math.ceil(maxResult / counterOfBlocks); // number of points on the page
 
-  document.querySelector('.points').innerHTML = '';
+  resetPoints();
 
   for (let i = 1; i < numberOfPoints + 1; i++) {
     let point = `<a class="" onclick="changePoints(this)">${i}</a>`;
@@ -78,7 +82,7 @@ function getPoints() {
 
 
 window.onresize = function() {  // change number of points on resize window
-  getPoints();
+  drawPoints();
 }
 
 }

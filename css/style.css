@@ -114,7 +114,7 @@ input[type="search"]::-webkit-search-results-decoration {
 }
 
 .content {
-  width: 99.5%;
+  width: 100%;
   min-height: 100%;
 }
 
