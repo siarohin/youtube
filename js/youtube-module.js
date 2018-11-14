@@ -24,13 +24,13 @@
 })();
 
 // set max Results of Elements
-const maxResult = 12;
+const maxResult = 15;
 
 // search phrase
 let searchValue;
 
 // width of block
-const GLOBAL_BLOCK_SETTING = 320;
+const GLOBAL_BLOCK_SETTING = 340;
 
 // for video id
 let arrId = [];
@@ -75,12 +75,22 @@ function drawPoints() {
 
   // count points
   for (let i = 0; i < numberOfPoints; i++) {
-    let point = `<a href="#${arrSliceId[i]}" onclick="changePoints(this)">${i+1}</a>`;
+    let point = `<a href="#${arrSliceId[i]}">${i+1}</a>`;
     document.querySelector('.points').innerHTML += point;
   };
 
   isVisible();
+  clickPoint();
   return false;
+}
+
+// pointListener
+function clickPoint() {
+  let a = document.querySelectorAll('.points > a');
+  for (let i = 0; i < a.length; i++)
+  a[i].addEventListener('click', function() {
+    changePoints(this)
+  });
 }
 
 // get user search phrase
@@ -89,6 +99,9 @@ function getSearchValue() {
 }
 
 function searchResult() {
+  // clear location hash
+  window.location.hash = '';
+
   // get user search phrase
   getSearchValue();
 
@@ -133,14 +146,14 @@ function searchResult() {
         }
       });
       drawPoints();
+      moveSlider();
   });
-
 }
 
 // change number of points on resize window
 window.onresize = function() {
   deletePoints();
-  
+
   // if block has been drawed -> draw points
   if (document.querySelector('.slider').children.length > 0) {
     drawPoints();
@@ -149,9 +162,6 @@ window.onresize = function() {
 
 // click on points
 function changePoints(element) {
-  // new active (click now)
-  this.element = element;
-
   // old active (has been active)
   let current = document.querySelector('.active');
 
@@ -170,7 +180,6 @@ function changePoints(element) {
   if (element.innerText < current.innerText) {
     transformToRight();
   }
-
   return false;
 }
 
@@ -230,7 +239,7 @@ function isVisible() {
       let link = document.querySelectorAll('.points > a');
       for (let j = 0; j < link.length; j++) {
         if (link[j].hash === active) {
-          link[j].className="active";
+          link[j].className = 'active';
         }
       }
 
@@ -238,4 +247,44 @@ function isVisible() {
   }
 
   }, 0);
+}
+
+
+function moveSlider() {
+  let slider = document.querySelectorAll('.slider > div');
+  let lastX;
+
+  for (let i = 0; i < slider.length; i++)
+  slider[i].addEventListener('mousedown', function(event) {
+    calculateOfBlocks();
+
+    if (event.which === 1) {
+      lastX = event.pageX;
+      addEventListener('mouseup', moved);
+      event.preventDefault();
+    }
+  });
+
+  function moved(event) {
+    if (event.which != 1) {
+      removeEventListener('mouseup', moved);
+    } else {
+      // distance between mousedown and mouseout (X)
+      let dist = event.pageX - lastX;
+
+      // Math.abs(dist) is fixed short distance
+      if (dist < 0 && Math.abs(dist) > 100) {
+        // if nextPage exist
+        if (document.querySelector('.points > .active').nextSibling) {
+        document.querySelector('.points > .active').nextSibling.click();
+        }
+      } if (dist > 0 && Math.abs(dist) > 100)
+      {
+        // if previousPage exist
+        if (document.querySelector('.points > .active').previousSibling) {
+        document.querySelector('.points > .active').previousSibling.click();
+        }
+      }
+    }
+  }
 }
