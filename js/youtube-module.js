@@ -4,22 +4,11 @@ const maxResult = 15;
 // width of slider
 const GLOBAL_BLOCK_SETTING = 340;
 
-// search user phrase
-let searchValue;
-
-// for video id
+// video id
 let youtubeId = [];
 
-// number of blocks
-let countSlider;
 
-// number of navigation
-let countNavigation;
-
-
-/* Generate Functions */
-
-// show init content
+/* Init Content */
 (function createWrapper() {
   let wrapper = document.createElement('div');
 
@@ -43,8 +32,7 @@ let countNavigation;
 })();
 
 
-/* Search Functions */
-
+/* Search Result */
 function searchResult() {
   // user search phrase
   let searchValue = document.querySelector('form')[0].value;
@@ -57,7 +45,7 @@ function searchResult() {
   .then(function(sliderBlock) {
 
     deleteSlider();
-    deleteNavigation();
+
     // reset video id
     youtubeId.length = 0;
 
@@ -88,15 +76,29 @@ function searchResult() {
           li.innerHTML = reviewCount.items[i].statistics.viewCount;
         }
       });
+
       generateNavigation();
+      listenNavigation();
+      moveSlider();
+      // listenHeader();
+
   }, false);
 }
 
 
-// show navigation
+/* Generate Navigation */
 function generateNavigation() {
-  calculateNavigation();
-  calculateSlider();
+
+  // delete navigation
+  if (document.querySelector('nav')) {
+    document.querySelector('nav').innerHTML = '';
+  }
+
+  // number of slider
+  let countSlider = Math.floor(document.body.querySelector('#wrapper').clientWidth / GLOBAL_BLOCK_SETTING);
+
+  // number of navigation
+  let countNavigation = Math.ceil(maxResult / countSlider);
 
   // set id to navigation
   let navigationId = [];
@@ -104,55 +106,20 @@ function generateNavigation() {
     navigationId.push(youtubeId[i]);
   }
 
-  // count navigation
+  // show navigation
   for (let i = 0; i < countNavigation; i++) {
     let navigation = `<a href="#${navigationId[i]}">${i+1}</a>`;
-    document.querySelector('.navigation').innerHTML += navigation;
-  };
+    document.querySelector('nav').innerHTML += navigation;
+  }
 
-  isVisible();
-  listenNavigation();
-  listenHeader();
-  moveSlider();
+  setNavigation();
+  // moveSlider();
+
 }
 
-
-/* Calculate Functions */
-
-// calculate slider
-function calculateSlider() {
-  return countSlider = Math.floor(document.body.querySelector('#wrapper').clientWidth / GLOBAL_BLOCK_SETTING);
-}
-
-// calculate navigation
-function calculateNavigation() {
-  calculateSlider();
-  return countNavigation = Math.ceil(maxResult / countSlider);
-}
-
-
-/* Delete Functions */
-
-// delete slider
+/* Delete Slider */
 function deleteSlider() {
   document.querySelector('.slider').innerHTML = '';
-}
-
-// delete navigation
-function deleteNavigation() {
-  document.querySelector('.navigation').innerHTML = '';
-}
-
-
-/* Listener Function */
-
-// listen navigation
-function listenNavigation() {
-  let navigation = document.querySelectorAll('.navigation > a');
-  for (let i = 0; i < navigation.length; i++)
-  navigation[i].addEventListener('click', function() {
-    changePoints(this);
-  });
 }
 
 // listen search form
@@ -165,35 +132,36 @@ function listenSearchForm() {
 }
 
 // listen on resize window
-window.onresize = function() {
-  deleteNavigation();
-
-  // if block has been drawed -> draw points
+window.onresize = () => {
+  // if slider generated -> generate navigation
   if (document.querySelector('.slider').children.length > 0) {
     generateNavigation();
   }
 }
 
 // listen header
-function listenHeader() {
-  let header = document.querySelector('header');
-  header.addEventListener('mouseup', moved);
+// function listenHeader() {
+//   let header = document.querySelector('header');
+//   header.addEventListener('mouseup', moved);
 
-  function moved(event) {
-    event.stopPropagation();
-  }
-}
+//   function moved(event) {
+//     event.stopPropagation();
+//   }
+// }
 
-// is slider visible? --> set active navigation
-function isVisible() {
+
+/* Set Active Navigation without click */
+/* is slider visible? --> set active navigation */
+/* use in function generateNavigation */
+function setNavigation() {
   setTimeout(() => {
-
   const slider = document.querySelectorAll('.slider > div');
 
+  // window_controll.height = window.height - header.height - nav.height
   const header = document.querySelector('header');
   const nav = document.querySelector('nav');
 
-  // get position of window
+  // get position of window_controll
   windowPosition = {
     top: window.pageYOffset + header.offsetHeight + nav.offsetHeight,
     left: window.pageXOffset,
@@ -211,7 +179,7 @@ function isVisible() {
       bottom: window.pageYOffset + slider[i].getBoundingClientRect().bottom,
       };
 
-    // if slider is visible
+    // is slider visible? -> it's active navigation
     if (sliderPosition.bottom > windowPosition.top &&
       sliderPosition.top < windowPosition.bottom &&
       sliderPosition.right > windowPosition.left &&
@@ -219,7 +187,7 @@ function isVisible() {
 
     // set navigation.href = slider.id
       let sliderId = `#${slider[i].id}`;
-      let navigation = document.querySelectorAll('.navigation > a');
+      let navigation = document.querySelectorAll('nav > a');
 
       for (let j = 0; j < navigation.length; j++) {
         if (navigation[j].hash === sliderId) {
@@ -228,93 +196,96 @@ function isVisible() {
       }
 
     }
+
   }
 
   }, 0);
 }
 
-/* Change Functions */
 
-// move slider
+/* Transform Slider on click Slider */
 function moveSlider() {
-  let slider = document.querySelectorAll('.slider > div');
-  let lastX;
+  let slider = document.querySelector('.slider');
 
-  for (let i = 0; i < slider.length; i++) {
-    slider[i].addEventListener('mousedown', clickSlider);
+    slider.onmousedown = function(event) {
+      let startPosition = event.pageX;
+      event.which === 1 ? listenSlider(slider, startPosition) : startPosition = 0;
   }
+}
 
-  function clickSlider(event) {
-    if (event.which === 1) {
-      lastX = event.pageX;
-      addEventListener('mouseup', moved);
-    }
-  }
+function listenSlider(slider, startPosition) {
 
-  function moved(event) {
-    if (event.which != 1) {
-      removeEventListener('mouseup', moved);
-    } else {
-      // distance between mousedown and mouseout (X)
-      let dist = event.pageX - lastX;
+  slider.onmouseup = function(event) {
 
-      // Math.abs(dist) is fixed short distance
-      if (dist < 0 && Math.abs(dist) > 100) {
-        // if nextPage exist
-        if (document.querySelector('.navigation > .active').nextSibling) {
-        document.querySelector('.navigation > .active').nextSibling.click();
-        }
-      }
-      if (dist > 0 && Math.abs(dist) > 100) {
-        // if previousPage exist
-        if (document.querySelector('.navigation > .active').previousSibling) {
-        document.querySelector('.navigation > .active').previousSibling.click();
-        }
+    let finishPosition = event.pageX;
+    let distance = finishPosition - startPosition;
+    console.log(startPosition);
+    console.log(finishPosition);
+
+    if (distance < 0 && Math.abs(distance) > 100) {
+
+      if (document.querySelector('nav > .active').nextSibling) {
+        document.querySelector('nav > .active').nextSibling.click();
       }
     }
+
+    if (distance > 0 && Math.abs(distance) > 100) {
+
+      if (document.querySelector('nav > .active').previousSibling) {
+        document.querySelector('nav > .active').previousSibling.click();
+      }
+    }
+
+  };
+}
+
+
+/* Listen Navigation on click */
+function listenNavigation() {
+  let navigation = document.querySelector('nav');
+  if (navigation) {
+
+    navigation.onclick = function(event) {
+      let elementNavigation = event.target;
+      if (elementNavigation.tagName != 'A') return;
+      transformSlider(elementNavigation);
+    };
+
   }
 }
 
-// change navigation
-function changePoints(element) {
-  // old active
-  let current = document.querySelector('.active');
 
-  // reset all
-  let links = document.querySelectorAll('.active');
-    for (let i = 0; i < links.length; i++) {
-      links[i].classList.remove('active');
+/* Transform Slider on click Navigation */
+let transformSlider = function(elementNavigation) {
+
+  // current active
+  let currentNavigation = document.querySelector('.active');
+
+  // reset all styles
+  let allNavigation = document.querySelectorAll('.active');
+    for (let i = 0; i < allNavigation.length; i++) {
+      allNavigation[i].classList.remove('active');
   }
 
-  // set active
-  element.className = 'active';
+  // new active
+  elementNavigation.className = 'active';
 
-  // new active > old active? -> set direction (to Left or to Right)
-  if (Number(element.innerText) > Number(current.innerText)) {
-    transformToLeft(); }
-  if (Number(element.innerText) < Number(current.innerText)) {
-    transformToRight();
+  // new active > old active? -> transform (to Left or to Right)
+  if (Number(elementNavigation.innerText) > Number(currentNavigation.innerText)) {
+    transformTo('left');
   }
-}
+  if (Number(elementNavigation.innerText) < Number(currentNavigation.innerText)) {
+    transformTo('right');
+  }
 
-// set animation to left
-function transformToLeft() {
-  let div = document.querySelector('.slider');
+  function transformTo(where) {
+    let div = document.querySelector('.slider');
 
-  div.classList.add('moving-left');
+    div.classList.add(`to-${where}`);
 
-  setTimeout(() => {
-    div.classList.remove('moving-left');
-  }, 1000);
-}
+    setTimeout(() => {
+      div.classList.remove(`to-${where}`);
+    }, 1000);
+  }
 
-// set animation to right
-function transformToRight() {
-  let div = document.querySelector('.slider');
-
-  div.classList.add('moving-right');
-
-  setTimeout(() => {
-    div.classList.remove('moving-right');
-  }, 1000);
 }
