@@ -1,5 +1,5 @@
 // set max results of blocks
-const maxResult = 15;
+const MAX_RESULT = 15;
 
 // width of slider
 const GLOBAL_BLOCK_SETTING = 340;
@@ -73,7 +73,7 @@ function generateNavigation() {
   const countSlider = Math.floor(document.body.querySelector('#wrapper').clientWidth / GLOBAL_BLOCK_SETTING);
 
   // number of navigation
-  const countNavigation = Math.ceil(maxResult / countSlider);
+  const countNavigation = Math.ceil(youtubeId.length / countSlider);
 
   // set id to navigation
   const navigationId = [];
@@ -91,14 +91,71 @@ function generateNavigation() {
 }
 
 
+/* Dotted Navigation */
+function dottedNavigation() {
+  const navigation = document.querySelectorAll('nav > a');
+  const active = document.querySelector('nav > .active');
+
+  const firstNavigation = document.querySelector('nav').firstChild;
+  const lastNavigation = document.querySelector('nav').lastChild;
+
+  const nextNavigation = active.nextSibling || active;
+  const prevNavigation = active.previousSibling || active;
+
+  for (let i = 0; i < navigation.length; i += 1) {
+    navigation[i].classList.add('hide');
+  }
+
+  firstNavigation.classList.remove('hide');
+  lastNavigation.classList.remove('hide');
+  active.classList.remove('hide');
+
+  firstNavigation.classList.add('first-navigation');
+  lastNavigation.classList.add('last-navigation');
+
+  nextNavigation.classList.remove('hide');
+  prevNavigation.classList.remove('hide');
+
+  if (lastNavigation === active || lastNavigation.previousSibling === active
+    || lastNavigation.previousSibling.previousSibling === active) {
+    lastNavigation.classList.remove('last-navigation');
+  }
+
+  if (firstNavigation === active || firstNavigation.nextSibling === active
+    || firstNavigation.nextSibling.nextSibling === active) {
+    firstNavigation.classList.remove('first-navigation');
+  }
+
+  if (firstNavigation === active) {
+    nextNavigation.classList.remove('hide');
+    nextNavigation.nextSibling.classList.remove('hide');
+    nextNavigation.nextSibling.nextSibling.classList.remove('hide');
+  }
+
+  if (firstNavigation.nextSibling === active) {
+    nextNavigation.nextSibling.classList.remove('hide');
+  }
+
+  if (lastNavigation === active) {
+    prevNavigation.classList.remove('hide');
+    prevNavigation.previousSibling.classList.remove('hide');
+    prevNavigation.previousSibling.previousSibling.classList.remove('hide');
+  }
+
+  if (lastNavigation.previousSibling === active) {
+    prevNavigation.previousSibling.classList.remove('hide');
+  }
+
+  if (navigation.length <= 5) {
+    firstNavigation.classList.remove('first-navigation');
+    lastNavigation.classList.remove('last-navigation');
+  }
+}
+
+
 /* Transform Slider on click Slider */
 function moveSlider() {
   const slider = document.querySelector('.slider');
-
-  slider.onmousedown = (event) => {
-    const clickStartLocation = event.pageX;
-    listenSlider(clickStartLocation);
-  };
 
   function listenSlider(clickStartLocation) {
     slider.onmouseup = (event) => {
@@ -118,6 +175,11 @@ function moveSlider() {
       }
     };
   }
+
+  slider.onmousedown = (event) => {
+    const clickStartLocation = event.pageX;
+    listenSlider(clickStartLocation);
+  };
 }
 
 
@@ -136,7 +198,7 @@ function listenNavigation() {
     }
 
     // new active
-    elementNavigation.className = 'active';
+    elementNavigation.classList.add('active');
     function transformTo(where) {
       const div = document.querySelector('.slider');
       div.classList.add(`to-${where}`);
@@ -159,6 +221,7 @@ function listenNavigation() {
       const elementNavigation = event.target;
       if (elementNavigation.tagName === 'A') {
         transformSlider(elementNavigation);
+        dottedNavigation();
       }
     };
   }
@@ -168,15 +231,16 @@ function listenNavigation() {
 /* Transform Slider on touch Slider */
 function touchSlider() {
   let initialPoint;
-  let finalPoint;
 
   const slider = document.querySelector('.slider');
-  slider.addEventListener('touchstart', (event) => {
-    initialPoint = event.changedTouches[0];
-  }, false);
 
-  slider.addEventListener('touchend', (event) => {
-    finalPoint = event.changedTouches[0];
+  slider.ontouchstart = (event) => {
+    const startPoint = event.changedTouches[0];
+    initialPoint = startPoint;
+  };
+
+  slider.ontouchend = (event) => {
+    const finalPoint = event.changedTouches[0];
 
     const distance = Math.abs(initialPoint.pageX - finalPoint.pageX);
 
@@ -189,7 +253,7 @@ function touchSlider() {
         document.querySelector('nav > .active').previousSibling.click();
       }
     }
-  });
+  };
 }
 
 
@@ -199,7 +263,7 @@ function searchResult() {
   const searchValue = document.querySelector('form')[0].value;
 
   // send response to api
-  fetch(`https://www.googleapis.com/youtube/v3/search?key=AIzaSyCAznfTwZKs8R47J-_PkpBrHYaRvcCmKwY&type=video&part=snippet&maxResults=${maxResult}&q=${searchValue}`)
+  fetch(`https://www.googleapis.com/youtube/v3/search?key=AIzaSyCAznfTwZKs8R47J-_PkpBrHYaRvcCmKwY&type=video&part=snippet&maxResults=${MAX_RESULT}&q=${searchValue}`)
     .then(response => response.json())
     .then((sliderBlock) => {
       deleteSlider();
@@ -240,6 +304,11 @@ function searchResult() {
       listenNavigation();
       moveSlider();
       touchSlider();
+
+      // init navigation position
+      if (document.querySelector('nav > a')) {
+        document.querySelector('nav > a').click();
+      }
     }, false);
 }
 
@@ -283,5 +352,6 @@ window.onresize = () => {
   // if slider generated -> generate navigation
   if (document.querySelector('.slider').children.length > 0) {
     generateNavigation();
+    dottedNavigation();
   }
 };
