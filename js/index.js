@@ -1,5 +1,5 @@
 // set max results of blocks
-const MAX_RESULT = 15;
+const MAX_RESULT = 50;
 
 // width of slider
 const GLOBAL_BLOCK_SETTING = 340;
@@ -116,7 +116,8 @@ function dottedNavigation() {
   nextNavigation.classList.remove('hide');
   prevNavigation.classList.remove('hide');
 
-  if (lastNavigation === active || lastNavigation.previousSibling === active
+  if (lastNavigation === active
+    || lastNavigation.previousSibling === active
     || lastNavigation.previousSibling.previousSibling === active) {
     lastNavigation.classList.remove('last-navigation');
   }
@@ -128,22 +129,34 @@ function dottedNavigation() {
 
   if (firstNavigation === active) {
     nextNavigation.classList.remove('hide');
-    nextNavigation.nextSibling.classList.remove('hide');
-    nextNavigation.nextSibling.nextSibling.classList.remove('hide');
+    if (nextNavigation.nextSibling !== null) {
+      nextNavigation.nextSibling.classList.remove('hide');
+      if (nextNavigation.nextSibling.nextSibling !== null) {
+        nextNavigation.nextSibling.nextSibling.classList.remove('hide');
+      }
+    }
   }
 
   if (firstNavigation.nextSibling === active) {
-    nextNavigation.nextSibling.classList.remove('hide');
+    if (nextNavigation.nextSibling !== null) {
+      nextNavigation.nextSibling.classList.remove('hide');
+    }
   }
 
   if (lastNavigation === active) {
     prevNavigation.classList.remove('hide');
-    prevNavigation.previousSibling.classList.remove('hide');
-    prevNavigation.previousSibling.previousSibling.classList.remove('hide');
+    if (prevNavigation.previousSibling !== null) {
+      prevNavigation.previousSibling.classList.remove('hide');
+      if (prevNavigation.previousSibling.previousSibling !== null) {
+        prevNavigation.previousSibling.previousSibling.classList.remove('hide');
+      }
+    }
   }
 
   if (lastNavigation.previousSibling === active) {
-    prevNavigation.previousSibling.classList.remove('hide');
+    if (prevNavigation.previousSibling !== null) {
+      prevNavigation.previousSibling.classList.remove('hide');
+    }
   }
 
   if (navigation.length <= 5) {
@@ -270,10 +283,20 @@ function searchResult() {
 
       // reset video id
       youtubeId.length = 0;
+      let range;
 
-      for (let i = 0; i < sliderBlock.pageInfo.resultsPerPage; i += 1) {
+      // if search result < MAX_RESULT
+      if (sliderBlock.pageInfo.totalResults >= MAX_RESULT) {
+        range = MAX_RESULT;
+      } else if (sliderBlock.pageInfo.totalResults < MAX_RESULT) {
+        range = sliderBlock.pageInfo.totalResults;
+      }
+
+      for (let i = 0; i < range; i += 1) {
         // save video id
-        youtubeId.push(sliderBlock.items[i].id.videoId);
+        if (sliderBlock.items[i].id.videoId) {
+          youtubeId.push(sliderBlock.items[i].id.videoId);
+        }
 
         // create blocks
         document.querySelector('.slider').innerHTML += `<div id="${youtubeId[i]}">
