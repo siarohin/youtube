@@ -1,4 +1,4 @@
-import { MAX_RESULT, GLOBAL_BLOCK_SETTING } from './default_settings';
+import { MAX_RESULT, GLOBAL_BLOCK_SETTING } from './js/default_settings';
 // video id
 const youtubeId = [];
 
