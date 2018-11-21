@@ -1,5 +1,11 @@
 import * as navigations from './navigations';
+import * as sliders from './sliders';
 
+
+export const isContinue = {
+  continue: false,
+  position: '',
+};
 
 /* Transform Slider on click Slider */
 export function clickSlider() {
@@ -21,6 +27,8 @@ export function clickSlider() {
           document.querySelector('nav > .active').previousSibling.click();
         }
       }
+
+      navigations.dotted();
     };
   }
 
@@ -75,6 +83,14 @@ export function clickNavigation() {
         // we're using attribute data-href="...", so we have a clear window.location.href
         const id = elementNavigation.dataset.href;
         document.getElementById(id).scrollIntoView(true);
+
+        // if we ckick on the last navigation -> loading sliders
+        if (elementNavigation === document.querySelector('nav').lastElementChild) {
+          isContinue.continue = true;
+          isContinue.position = elementNavigation;
+
+          sliders.render();
+        }
       }
     };
   }
