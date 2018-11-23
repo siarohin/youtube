@@ -13,6 +13,7 @@ export function render() {
   // send response to api
   fetch(`${settings.url}/search?key=${settings.apiKey}&type=video&part=snippet&maxResults=${settings.MAX_RESULT}&pageToken=${nextPage}&q=${searchValue}`)
     .then(response => response.json())
+
     .then((sliderBlock) => {
       let range;
 
